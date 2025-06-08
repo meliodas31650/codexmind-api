@@ -3,17 +3,27 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { agent, message, projet, user, timestamp } = body
+    const { prompt, agent, projet, user } = body
 
-    if (!agent || !message || !projet || !user) {
-      return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 })
+    if (!prompt || !agent || !projet || !user) {
+      return NextResponse.json({ error: 'Données manquantes' }, { status: 400 })
     }
 
-    console.log('[RECEIVED]', { agent, message, projet, user, timestamp })
+    const webhookUrl = process.env.N8N_WEBHOOK_URL
+    if (!webhookUrl) {
+      return NextResponse.json({ error: 'Webhook URL non définie' }, { status: 500 })
+    }
 
-    return NextResponse.json({ success: true })
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, agent, projet, user })
+    })
+
+    const data = await res.json()
+    return NextResponse.json({ success: true, data })
   } catch (error) {
-    console.error('[RECEIVE-MESSAGE]', error)
+    console.error('[SEND-MESSAGE]', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
