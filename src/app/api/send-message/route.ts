@@ -1,4 +1,4 @@
-// /src/app/api/send-message/route.ts
+// src/app/api/send-message/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -10,15 +10,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Données manquantes' }, { status: 400 })
     }
 
-    // Appel de ton webhook n8n
-    const webhookUrl = process.env.N8N_WEBHOOK_URL
-    const response = await fetch(webhookUrl!, {
+    const webhookUrl = process.env.N8N_WEBHOOK_URL as string
+
+    const res = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt, agent, projet, user }),
     })
 
-    const data = await response.json()
+    const data = await res.json()
     return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error('[SEND-MESSAGE]', error)
